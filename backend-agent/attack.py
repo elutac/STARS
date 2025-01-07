@@ -4,7 +4,6 @@ import json
 import os
 import logging
 
-
 from attack_result import AttackResult, SuiteResult
 from libs.codeattack import start_codeattack, \
     OUTPUT_FILE as codeattack_out_file
