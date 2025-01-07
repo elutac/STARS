@@ -168,8 +168,8 @@ def start_codeattack(target_model: LLM,
             # incompatibility with the following < and > clauses
             try:
                 judge_score = int(prompt_attack_result['judge_score'])
-            except ValueError:
-                # Sometimes the LLM replies with a score="N/A"
+            except (ValueError, TypeError):
+                # Sometimes the LLM replies with a score="N/A" or =None
                 logger.warning('Judge replied with a non-integer score: '
                                f'{judge_score}')
                 judge_score = -1
@@ -229,7 +229,10 @@ def _prompt_attack(data, target_llm, post_processor, judge_llm, data_key=''):
     # As we call our LLM generate method instead of a direct completion
     # invocation (i.e., CodeAttack original implementation), we need to get the
     # textual response from a LLMResponse class with the unwrap method
-    target_response = target_response.unwrap_first()
+    # This may introduce a TypeError later (in post_processor.core call) in
+    # case the target_response is None, so we treat this case by assigning an
+    # empty string
+    target_response = target_response.unwrap_first() or ''
     logger.debug(target_response)
 
     logger.debug('*' * 20)
