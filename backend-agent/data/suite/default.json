@@ -40,7 +40,10 @@
     {
       "attack": "codeattack",
       "target-model": "<target>",
-      "eval-model": "gpt-4"
+      "eval-model": "gpt-4",
+      "parameters": {
+        "num_prompts": 20
+      }
     }
   ]
 }
