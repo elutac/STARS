@@ -159,42 +159,6 @@ class AttackSpecification:
                         self.eval_model,
                         self.parameters
                     ))
-                case 'cipher':
-                    return t.trace(Cipher(
-                        self.target_model,
-                        self.eval_model).perform_attack(
-                        self.parameters))
-                case 'codechameleon':
-                    return t.trace(CodeChameleon(
-                        self.target_model,
-                        self.eval_model).perform_attack(
-                        self.parameters))
-                case 'deepinception':
-                    return t.trace(DeepInception(
-                        self.target_model,
-                        self.eval_model).perform_attack(
-                        self.parameters))
-                case 'ica':
-                    return t.trace(ICA(
-                        self.target_model).perform_attack(
-                        self.parameters))
-                case 'jailbroken':
-                    return t.trace(Jailbroken(
-                        self.target_model,
-                        self.attack_model,
-                        self.eval_model).perform_attack(
-                        self.parameters))
-                case 'multilingual':
-                    return t.trace(Multilingual(
-                        self.target_model,
-                        self.eval_model).perform_attack(
-                        self.parameters))
-                case 'renellm':
-                    return t.trace(ReNeLLM(
-                        self.target_model,
-                        self.attack_model,
-                        self.eval_model).perform_attack(
-                        self.parameters))
                 case _:
                     raise ValueError(f'Attack {self.attack} is not known.')
 
