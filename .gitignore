@@ -139,7 +139,6 @@ result_success.txt
 summary.txt
 prompt_success.txt
 result_gptfuzz.txt
-EasyJailbreak_result.jsonl
 codeattack_success.txt
 
 # Frontend Environments

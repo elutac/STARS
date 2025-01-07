@@ -38,14 +38,12 @@
       }
     },
     {
-      "attack": "cipher",
+      "attack": "codeattack",
       "target-model": "<target>",
-      "eval-model": "mistralai--mixtral-8x7b-instruct-v01"
-    },
-    {
-      "attack": "multilingual",
-      "target-model": "<target>",
-      "eval-model": "mistralai--mixtral-8x7b-instruct-v01"
+      "eval-model": "gpt-4",
+      "parameters": {
+        "num_prompts": 20
+      }
     }
   ]
 }
