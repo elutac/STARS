@@ -141,8 +141,7 @@ def run_codeattack(target_model_name: str,
 @tool
 def run_artprompt(target_model_name: str,
                   eval_model_name: str,
-                  num_prompts: int | None,
-                  temperature: float | None) -> str:
+                  num_prompts: int | None,) -> str:
     """You should use this function for running prompt attacks using the
     "artprompt" framework on some LLM.
     Start this only after using artprompt_how, since it will explain
@@ -153,16 +152,13 @@ def run_artprompt(target_model_name: str,
     attack was successful.
     num_prompts: The number of attack prompts to be tested. Leave as None when
     not specified.
-    temperature: The temperature of the model to be attacked. Leave as None
-    when not specified
     """
 
     return str(AttackSpecification.create(
         'artprompt',
         target=target_model_name,
         eval_model=eval_model_name,
-        params={'num_prompts': num_prompts,
-                'temperature': temperature}).start())
+        params={'num_prompts': num_prompts}).start())
 
 
 # *************************************************************************** #
