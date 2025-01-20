@@ -5,6 +5,8 @@ import os
 import logging
 
 from attack_result import AttackResult, SuiteResult
+from libs.artprompt import start_artprompt, \
+    OUTPUT_FILE as artprompt_out_file
 from libs.codeattack import start_codeattack, \
     OUTPUT_FILE as codeattack_out_file
 from libs.gptfuzz import perform_gptfuzz_attack, \
@@ -158,6 +160,12 @@ class AttackSpecification:
                         self.eval_model,
                         self.parameters
                     ))
+                case 'artprompt':
+                    return t.trace(start_artprompt(
+                        self.target_model,
+                        self.eval_model,
+                        self.parameters
+                    ))
                 case _:
                     raise ValueError(f'Attack {self.attack} is not known.')
 
@@ -172,6 +180,8 @@ class AttackSpecification:
                 return gptfuzz_out_file
             case 'codeattack':
                 return codeattack_out_file
+            case 'artprompt':
+                return artprompt_out_file
 
 
 class AttackSuite():
