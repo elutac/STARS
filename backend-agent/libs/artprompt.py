@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 import art
+import pandas as pd
 from nltk.corpus import stopwords
 
 from attack_result import AttackResult
@@ -32,7 +33,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(status.trace_logging)
 
-# Constants for ArtPrompt attack
 TEST_DATASET = 'harmful_behaviors_custom_artprompt.csv'
 OUTPUT_FILE = 'result/artprompt_success.json'
 DESCRIPTION = """
@@ -120,6 +120,12 @@ class VITCHorizontal:
         return '\n'.join(res)
 
     def font(self, font_name: str, instruction: str, masked_word: str) -> str:
+        """Generate the cloacked prompt.
+
+        This function translates the masked word into its corresponding ASCII
+        art (in the chosen font) and encodes it into the instruction. Then
+        returns the cloacked prompt to be used for the attack."""
+        # TODO: support masked tokens different from "[MASK]"
         ascii_text = self.generate_alphabet_ascii(masked_word,
                                                   ascii_coding=font_name)
         length = len(masked_word)
@@ -240,7 +246,7 @@ class GPTJudge:
         self.judge = LLM.from_model_name(judge_model)
 
     @classmethod
-    def build_policy(self, target_model):
+    def build_policy(self, target_model: str) -> str:
         """Build a policy template. It depends on the target model family
         class."""
         if 'amazon' in target_model:
@@ -301,13 +307,13 @@ class GPTJudge:
         max_score, max_reason, max_qa = max(zip(scores, reasons, all_replies))
         return max_score, max_reason, max_qa
 
-# ######################## Begin code for prompt attack ######################
 
+##############################################################################
+# ####################### Begin code for prompt attack #######################
 
 def mask_word_stop(sentence: str, mask_token: str = '[MASK]') -> \
         list[tuple[str, str]]:
-    """
-    Mask a word in a sentence by stop words.
+    """Mask a word in a sentence by stop words.
 
     Replace each word with a chosen mask_token and return the masked
     prompts together with the original masked word for each of them.
@@ -322,21 +328,20 @@ def mask_word_stop(sentence: str, mask_token: str = '[MASK]') -> \
     return masked_s_kw
 
 
-def load_dataset(num_samples=-1):
+def load_dataset(num_samples: int = -1) -> list[str]:
     """Load the default dataset."""
-    prompts_path = Path(
-        'libs') / 'data' / TEST_DATASET
-    with open(prompts_path, 'r') as f:
-        reader = csv.reader(f)
-        data = list(reader)[1:]
-        assert len(data) == 50
-    data = [d[1] for d in data]
+    prompts_path = Path('libs') / 'data' / TEST_DATASET
+    # Extract only column "goal" from the csv
+    data = pd.read_csv(prompts_path, usecols=['goal'])
+    assert len(data) == 50
     logger.info('Use default test dataset')
+    # Convert into list of strings
+    goals = data.astype(str).values.flatten().tolist()
     if num_samples != -1:
         logger.info(f'Use {num_samples} test samples '
                     'instead of the full test dataset')
-        data = random.sample(data, num_samples)
-    return data
+        goals = random.sample(goals, num_samples)
+    return goals
 
 
 def single_inference(idx: int, target_model: LLM, instruction: str,
