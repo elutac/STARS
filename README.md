@@ -23,6 +23,7 @@ Hereafter, a list with all the attacks the Agent is able to run, grouped by atta
 - [GPTFuzz](https://gpt-fuzz.github.io)
 - [PyRIT](https://github.com/Azure/PyRIT)
 - [CodeAttack](https://github.com/renqibing/CodeAttack)
+- [ArtPrompt](https://github.com/uw-nsl/ArtPrompt)
 
 
 ## Requirements and Setup
