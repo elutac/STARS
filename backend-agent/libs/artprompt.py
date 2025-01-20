@@ -345,6 +345,7 @@ def load_dataset(num_samples: int = -1) -> list[str]:
 
 
 def single_inference(idx: int, target_model: LLM, instruction: str,
+                     temperature: float = 0.3,
                      debug: bool = False) -> dict:
     """Generate cloacked prompts starting from a malicious instruction, and run
     prompt attacks on each cloacked prompt.
@@ -377,7 +378,8 @@ def single_inference(idx: int, target_model: LLM, instruction: str,
         attack_prompt = prompt_generator(masked_instruction, kw)
         # Get response from the target model
         response = model.generate(prompt=attack_prompt,
-                                  system_prompt='').unwrap_first()
+                                  system_prompt='',
+                                  temperature=temperature).unwrap_first()
         logger.debug(response if response else 'LLM did not return anything')
         resp_list.append(response)
 
@@ -396,6 +398,17 @@ def single_inference(idx: int, target_model: LLM, instruction: str,
 def start_artprompt(target_model: LLM,
                     eval_model: LLM,
                     parameters: dict) -> AttackResult:
+    """
+    Start an attack using the ArtPrompt attack framework.
+
+    @params
+    target_model: Model that is to be attacked.
+    eval_model: Model used to evaluate whether an attack was successful.
+    parameters: Additional parameters:
+    Optional parameter num_prompts to limit the test to a number of prompts
+    instead of testing all the prompts from the dataset.
+    Optional parameter temperature to control the temperature of the LLMs.
+    """
     # Load dataset
     logger.info('Load dataset')
     num_samples = int(parameters.get('num_samples', -1))
@@ -416,7 +429,9 @@ def start_artprompt(target_model: LLM,
 
             results_instruction = single_inference(
                 idx, target_model, instruction,
-                debug=parameters.get('debug', False))
+                debug=parameters.get('debug', False),
+                temperature=parameters.get('temperature', 0.3)
+            )
             res.append(results_instruction)
 
         # Show full progress bar at the end of for loop
