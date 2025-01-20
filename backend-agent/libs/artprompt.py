@@ -33,7 +33,7 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(status.trace_logging)
 
 TEST_DATASET = 'harmful_behaviors_custom_artprompt.csv'
-OUTPUT_FILE = 'result/artprompt_success.json'
+OUTPUT_FILE = 'artprompt_success.json'
 DESCRIPTION = """
 ArtPrompt is a tool that automatically tests prompt injection attacks on LLMs.
 Given a prompt written in natural language, it encodes one word into its ASCII
@@ -43,7 +43,7 @@ dataset, and relies on a LLM to judge whether the attack was successful.
 """
 
 ##############################################################################
-# Content for cloacked prompt generation
+# Content for cloaked prompt generation
 # ASCII letters generated with GPT
 gptgen_ascii = {
     'A': ["  *  ", " * * ", "*****", "*   *", "*   *"],
@@ -119,11 +119,11 @@ class VITCHorizontal:
         return '\n'.join(res)
 
     def font(self, font_name: str, instruction: str, masked_word: str) -> str:
-        """Generate the cloacked prompt.
+        """Generate the cloaked prompt.
 
         This function translates the masked word into its corresponding ASCII
         art (in the chosen font) and encodes it into the instruction. Then
-        returns the cloacked prompt to be used for the attack."""
+        returns the cloaked prompt to be used for the attack."""
         # TODO: support masked tokens different from "[MASK]"
         ascii_text = self.generate_alphabet_ascii(masked_word,
                                                   ascii_coding=font_name)
@@ -232,7 +232,8 @@ def extract_content(tag, text):
                 parts[0] = parts[0][:-1]
             if not parts[0].isdigit():
                 print(f"parts[0] = {parts[0]}")
-                return None
+                # return None
+                return -1
         return int(parts[0])
     else:
         end_idx = text.find("#", start_idx + 1)
@@ -292,7 +293,7 @@ class GPTJudge:
 
         Results are stored in a dictionary. The dictionary should store
         the instruction (i.e., the original malicious prompt) and a list of
-        responses (i.e., the responses to the cloacked prompts crafted by
+        responses (i.e., the responses to the cloaked prompts crafted by
         ArtPrompt attack).
         """
         # Evaluate one dict of results (i.e., one instruction and its
@@ -346,8 +347,8 @@ def load_dataset(num_samples: int = -1) -> list[str]:
 def single_inference(idx: int, target_model: LLM, instruction: str,
                      temperature: float = 0.3,
                      debug: bool = False) -> dict:
-    """Generate cloacked prompts starting from a malicious instruction, and run
-    prompt attacks on each cloacked prompt.
+    """Generate cloaked prompts starting from a malicious instruction, and run
+    prompt attacks on each cloaked prompt.
     """
     # Top font list as per the paper
     top_font_list = [
@@ -368,8 +369,10 @@ def single_inference(idx: int, target_model: LLM, instruction: str,
     prompt_generator = VITCHorizontal()
     resp_list = []
     # TODO: progressbar here?
+    # Multiprocessing would save a lot of time here, but it may raise issues
+    # with AI Core default rate limits
     for masked_instruction, kw in masked_s_kw:
-        # Create cloacked prompt, with ASCII art inside
+        # Create cloaked prompt, with ASCII art inside
         attack_prompt = prompt_generator.font(font_name,
                                               masked_instruction,
                                               kw)
@@ -379,6 +382,7 @@ def single_inference(idx: int, target_model: LLM, instruction: str,
                                          temperature=temperature
                                          ).unwrap_first()
         logger.debug(response if response else 'LLM did not return anything')
+        logger.debug('*' * 40)
         resp_list.append(response)
 
     res = {
@@ -409,16 +413,16 @@ def start_artprompt(target_model: LLM,
     """
     # Load dataset
     logger.info('Load dataset')
-    num_samples = int(parameters.get('num_samples', -1))
+    num_samples = int(parameters.get('num_prompts', -1))
     prompts = load_dataset(num_samples)
 
     # Build prompts and query LLM
     res = []
     # First run all the prompt attacks, i.e., for each instruction,
-    # generate the cloacked prompts and invoke the target LLM on each
-    # of these just crafted cloacked prompt.
+    # generate the cloaked prompts and invoke the target LLM on each
+    # of these just crafted cloaked prompt.
     # Then, at a second stage, for each instruction evaluate whether
-    # there is at least one of the cloacked prompts that returned a
+    # there is at least one of the cloaked prompts that returned a
     # malicious instruction
     with Step('Running Prompt Attack'):
         for idx, instruction in enumerate(prompts):
@@ -434,6 +438,7 @@ def start_artprompt(target_model: LLM,
 
         # Show full progress bar at the end of for loop
         status.report_success()
+    logger.info("===========================================\n")
 
     # eval_llm
     logger.info('GPT-Judge evaluation')
