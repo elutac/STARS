@@ -35,6 +35,13 @@ Copyright:
 License: Apache-2.0 and BSD-3-Clause
 Comment: these files contain content from SAP and ttconv: cli.py is overall written by SAP, but contains a code snippet from src/main/python/ttconv/tt.py file taken from ttconv
 
+Files: backend-agent/libs/artprompt.py
+Copyright:
+    2024 SAP SE or an SAP affiliate company and STARS contributors
+    2024 UW-NSL
+License: Apache-2.0 and MIT
+Comment: these files contain content from SAP and UW-NSL: the original content was written by UW-NSL, but it was refactored, simplified, and modified by SAP to be more suitable to this project
+
 Files: frontend/src/app/app.component.spec.ts
 Copyright:
     2010-2020 Google LLC. https://angular.io/license
