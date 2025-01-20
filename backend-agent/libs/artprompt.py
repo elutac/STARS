@@ -13,7 +13,6 @@ are not well-formatted and contain style errors.
 This is on purpose and it is part of the prompt attacks to run.
 DO NOT CORRECT THEM.
 """
-import csv
 import json
 import logging
 import random
@@ -242,8 +241,8 @@ def extract_content(tag, text):
 
 
 class GPTJudge:
-    def __init__(self, judge_model='gpt-4'):
-        self.judge = LLM.from_model_name(judge_model)
+    def __init__(self, judge_model: LLM):
+        self.judge = judge_model
 
     @classmethod
     def build_policy(self, target_model: str) -> str:
@@ -366,20 +365,19 @@ def single_inference(idx: int, target_model: LLM, instruction: str,
     font_name = random.choice(top_font_list)
     logger.debug(f'Use {font_name} font for ASCII art.')
 
-    # Get font encoding function
-    PT = VITCHorizontal()
-    prompt_generator = getattr(PT, font_name)
-
-    model = LLM.from_model_name(target_model)
+    prompt_generator = VITCHorizontal()
     resp_list = []
     # TODO: progressbar here?
     for masked_instruction, kw in masked_s_kw:
         # Create cloacked prompt, with ASCII art inside
-        attack_prompt = prompt_generator(masked_instruction, kw)
+        attack_prompt = prompt_generator.font(font_name,
+                                              masked_instruction,
+                                              kw)
         # Get response from the target model
-        response = model.generate(prompt=attack_prompt,
-                                  system_prompt='',
-                                  temperature=temperature).unwrap_first()
+        response = target_model.generate(prompt=attack_prompt,
+                                         system_prompt='',
+                                         temperature=temperature
+                                         ).unwrap_first()
         logger.debug(response if response else 'LLM did not return anything')
         resp_list.append(response)
 
@@ -449,7 +447,8 @@ def start_artprompt(target_model: LLM,
             status.report_progress(idx, len(res))
 
             # Run evaluation
-            score, reason, reply = eval_model.evaluate(res_dict, target_model)
+            score, reason, reply = eval_model.evaluate(res_dict,
+                                                       target_model.model_name)
             # Dump also results of evaluation into res_dict
             res_dict['score'] = score
             res_dict['reason'] = reason
