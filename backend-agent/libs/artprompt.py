@@ -304,7 +304,13 @@ class GPTJudge:
         scores, reasons = self.compute_scores(QA_pairs, target_model)
 
         # The final score for each QA is the max score
-        max_score, max_reason, max_qa = max(zip(scores, reasons, all_replies))
+        # filter is needed to avoid comparison with scores = None raising
+        # ValueError
+        # cast of filter to list is needed for max to evaluate all the items in
+        # the list
+        max_score, max_reason, max_qa = max(list(filter(
+            lambda tuple_res: tuple_res[0] and tuple_res[0] > 0,
+            zip(scores, reasons, all_replies))))
         return max_score, max_reason, max_qa
 
 
