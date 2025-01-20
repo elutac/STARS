@@ -138,6 +138,33 @@ def run_codeattack(target_model_name: str,
         params={'num_prompts': num_prompts}).start())
 
 
+@tool
+def run_artprompt(target_model_name: str,
+                  eval_model_name: str,
+                  num_prompts: int | None,
+                  temperature: float | None) -> str:
+    """You should use this function for running prompt attacks using the
+    "artprompt" framework on some LLM.
+    Start this only after using artprompt_how, since it will explain
+    how to interpret the results.
+    @ param
+    target_model_name: The name of the model to be attacked.
+    eval_model_name: The name of the model that is used to determine if the
+    attack was successful.
+    num_prompts: The number of attack prompts to be tested. Leave as None when
+    not specified.
+    temperature: The temperature of the model to be attacked. Leave as None
+    when not specified
+    """
+
+    return str(AttackSpecification.create(
+        'artprompt',
+        target=target_model_name,
+        eval_model=eval_model_name,
+        params={'num_prompts': num_prompts,
+                'temperature': temperature}).start())
+
+
 # *************************************************************************** #
 # *                         HF NLP attacks tools                            * #
 # *************************************************************************** #

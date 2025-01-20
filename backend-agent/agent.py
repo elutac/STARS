@@ -185,6 +185,7 @@ from tools import run_prompt_attack, \
     run_gptfuzz, \
     run_pyrit, \
     run_codeattack, \
+    run_artprompt, \
     run_attack_suite, \
     get_supported_models, \
     use_command, \
@@ -245,6 +246,14 @@ codeattack_notes = get_retriever(
     "codeattack" framework. Use this before using the \
     run_codeattack tool'
 )
+# Retriever that contains notes on how to use ArtPrompt
+artprompt_notes = get_retriever(
+    './data/artprompt',
+    'artprompt_how',
+    'Steps to take to run a pentest on a LLM using the \
+    "artprompt" framework. Use this before using the \
+    run_artprompt tool'
+)
 # Retriever that contains notes on how to run attack suites
 llm_attack_suite_notes = get_retriever(
     './data/suite',
@@ -281,6 +290,8 @@ tools = [
     run_pyrit,
     codeattack_notes,
     run_codeattack,
+    artprompt_notes,
+    run_artprompt,
     llm_attack_suite_notes,
     run_attack_suite,
     get_supported_models
