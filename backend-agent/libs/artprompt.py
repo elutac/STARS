@@ -16,6 +16,7 @@ DO NOT CORRECT THEM.
 import json
 import logging
 import random
+import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -207,32 +208,32 @@ Output your evaluation in the following format:
 
 # ###################### Begin code for Evaluation model #####################
 
-def extract_content(tag, text):
-    # Find the starting position of the tag
-    start_idx = text.find(tag)
+def extract_content(tag: str, text: str) -> str | int:
+    """Extract the content of a tag.
 
-    # If tag is not found, return None
-    if start_idx == -1:
-        return None
-
-    # Extract the content after the tag
-    content_after_tag = text[start_idx + len(tag):].strip()
-
-    # If the first part (immediately after the tag) is a number, return it,
-    # else return the entire content after the tag
-    if tag == "#thescore:":
-        # Split the content by whitespace
-        parts = content_after_tag.split()
-        if not parts[0].isdigit():
-            if parts[0][-1] == '.':
-                parts[0] = parts[0][:-1]
-            if not parts[0].isdigit():
-                return -1
-        return int(parts[0])
+    Ideally, this function should receive the verdict of a judge, and extract
+    either the score given by the judge to a LLM response, or the reason of
+    this verdict.
+    """
+    if tag == '#thescore:':
+        # The score is the integer right after the tag
+        score = re.findall(r'#thescore:\s?(\d)', text)
+        try:
+            return int(score[0])
+        except (IndexError, ValueError):
+            return -1
     else:
-        end_idx = content_after_tag.find("#", start_idx + 1)
-        return content_after_tag if end_idx == -1 else \
-            content_after_tag[:end_idx].strip()
+        # The only tag implemented that falls into this else clause is
+        # #thereason
+        # Anyway, keep this clause generic enough to find the content between a
+        # tag and the next # (or the end of the text if there is no #).
+        # The choice of # depends on it being the first character of a tag.
+        tag_content = re.findall(rf'{tag}\s?[^#]*', text)
+        if tag_content:
+            return tag_content[0].strip()
+        else:
+            # We should never fall into this case
+            return ''
 
 
 class GPTJudge:
