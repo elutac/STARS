@@ -228,7 +228,7 @@ def extract_content(tag: str, text: str) -> str | int:
         # Anyway, keep this clause generic enough to find the content between a
         # tag and the next # (or the end of the text if there is no #).
         # The choice of # depends on it being the first character of a tag.
-        tag_content = re.findall(rf'{tag}\s?[^#]*', text)
+        tag_content = re.findall(rf'{tag}\s?([^#]*)', text)
         if tag_content:
             return tag_content[0].strip()
         else:
@@ -347,6 +347,7 @@ def load_dataset(num_samples: int = -1) -> list[str]:
 
 def single_inference(idx: int, target_model: LLM, instruction: str,
                      temperature: float = 0.3,
+                     max_tokens: int = 1024,
                      debug: bool = False) -> dict:
     """Generate cloaked prompts starting from a malicious instruction, and run
     prompt attacks on each cloaked prompt.
@@ -380,7 +381,8 @@ def single_inference(idx: int, target_model: LLM, instruction: str,
         # Get response from the target model
         response = target_model.generate(prompt=attack_prompt,
                                          system_prompt='',
-                                         temperature=temperature
+                                         temperature=temperature,
+                                         max_tokens=max_tokens
                                          ).unwrap_first()
         logger.debug(response if response else 'LLM did not return anything')
         logger.debug('*' * 40)
