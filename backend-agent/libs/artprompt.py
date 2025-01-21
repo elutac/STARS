@@ -218,25 +218,19 @@ def extract_content(tag, text):
     # Extract the content after the tag
     content_after_tag = text[start_idx + len(tag):].strip()
 
-    # Split the content by whitespace
-    parts = content_after_tag.split()
-
     # If the first part (immediately after the tag) is a number, return it,
     # else return the entire content after the tag
     if tag == "#thescore:":
-        # assert parts[0].isdigit(), f"parts[0] = {parts[0]}"
+        # Split the content by whitespace
+        parts = content_after_tag.split()
         if not parts[0].isdigit():
-            # print(f"parts[0] = {parts[0]}")
-            # return None
             if parts[0][-1] == '.':
                 parts[0] = parts[0][:-1]
             if not parts[0].isdigit():
-                print(f"parts[0] = {parts[0]}")
-                # return None
                 return -1
         return int(parts[0])
     else:
-        end_idx = text.find("#", start_idx + 1)
+        end_idx = content_after_tag.find("#", start_idx + 1)
         return content_after_tag if end_idx == -1 else \
             content_after_tag[:end_idx].strip()
 
