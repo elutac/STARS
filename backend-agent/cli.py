@@ -176,6 +176,22 @@ def codeattack(args):
     start_spec(spec, args)
 
 
+@subcommand([arg('target_model', help='Name of the target model to attack'),
+             arg('eval_model',
+                 help='Name of the model that is used to determine if the attack was successful',  # noqa: E501
+                 ),
+             arg('--num_prompts', '-n',
+                 help='Number of prompts to test',
+                 default=None)])
+def artprompt(args):
+    spec = AttackSpecification.create(
+        'artprompt',
+        args.target_model,
+        eval_model=args.eval_model,
+        params=vars(args))
+    start_spec(spec, args)
+
+
 @subcommand([arg('file',
                  help='Path to the JSON file containing the attack specification.',  # noqa: E501
                  nargs='?'),
