@@ -361,6 +361,8 @@ def single_inference(idx: int, target_model: LLM, instruction: str,
         # case insensitive
         'cards',
         'puzzle',
+        # GPT-generated
+        'gen',
     ]
     # Restrict the mask strategy to vitc horizontal, with a random font
     # chosen among the ones showing the best results in the paper
