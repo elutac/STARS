@@ -182,6 +182,8 @@ def codeattack(args):
                  ),
              arg('--num_prompts', '-n',
                  help='Number of prompts to test',
+                 default=None),
+             arg('--outfile', '-o', help='Output file with results',
                  default=None)])
 def artprompt(args):
     spec = AttackSpecification.create(
