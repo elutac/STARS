@@ -109,6 +109,8 @@ def perform_gptfuzz_attack(mutate_model: LLM,
     'run_gptfuzz'. See further documentation there.
     """
 
+    output_file = parameters.get('output_file', OUTPUT_FILE)
+    logger.debug(f'Use output file {output_file}')
     with Step('Preparing attack'):
         seed_path = importlib.resources.files(
             'gptfuzzer') / 'datasets/prompts/GPTFuzzer.csv'
@@ -127,13 +129,11 @@ def perform_gptfuzz_attack(mutate_model: LLM,
         # Delete the results of the previous run, to make sure it does not
         # fail in fuzzing and then uses previous results to hallucinate a
         # successful attack
-        if os.path.exists(OUTPUT_FILE):
-            os.remove(OUTPUT_FILE)
+        if os.path.exists(output_file):
+            os.remove(output_file)
 
-    max_query_count = parameters['max_query_count'] \
-        if 'max_query_count' in parameters else 300
-    max_jailbreak_count = parameters['max_jailbreak_count'] \
-        if 'max_jailbreak_count' in parameters else 1
+    max_query_count = parameters.get('max_query_count', 300)
+    max_jailbreak_count = parameters.get('max_jailbreak_count', 1)
 
     mutate_model = LLMAdapter(mutate_model)
     target_model = LLMAdapter(target_model)
@@ -157,7 +157,7 @@ def perform_gptfuzz_attack(mutate_model: LLM,
         max_jailbreak=max_jailbreak_count,
         max_query=max_query_count,
         generate_in_batch=True,
-        result_file=OUTPUT_FILE
+        result_file=output_file
     )
     logger.info('Starting Fuzzer')
     with Step('Running Fuzzer'):
@@ -168,7 +168,7 @@ def perform_gptfuzz_attack(mutate_model: LLM,
         fuzzer.current_jailbreak > 0,
         'jailbreak',
         details={
-            'result_file': OUTPUT_FILE,
+            'result_file': output_file,
             'query_count': fuzzer.current_query,
             'attack_description': DESCRIPTION
         }

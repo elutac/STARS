@@ -79,7 +79,10 @@ def start_spec(spec: AttackSpecification, args: Namespace):
 
 
 @subcommand([arg('target_model', help='Name of the target model to attack'),
-             arg('-s', '--system-prompt', type=str, help='The system prompt given to the model that is attacked.')])  # noqa: E501
+             arg('-s', '--system-prompt', type=str,
+                 help='The system prompt given to the model that is attacked.'),  # noqa: E501
+             arg('--output_file', '-o', help='Output file with results',
+                 default=None)])
 def promptmap(args):
     spec = AttackSpecification.create(
         'promptmap',
@@ -89,9 +92,14 @@ def promptmap(args):
 
 
 @subcommand([arg('target_model', help='Name of the target model to attack'),
-             arg('attack_model', help='Name of the model that is used to attack/ mutate prompts'),  # noqa: E501
-             arg('-q', '--max-query-count', default=300, type=int, help='Maximum number of queries to send before terminating the attck'),  # noqa: E501
-             arg('-j', '--max-jailbreak-count', default=1, type=int, help='Maximum number of jailbreaks needed to achieve before terminating the attck'),])  # noqa: E501
+             arg('attack_model',
+                 help='Name of the model that is used to attack/ mutate prompts'),  # noqa: E501
+             arg('-q', '--max-query-count', default=300, type=int,
+                 help='Maximum number of queries to send before terminating the attack'),  # noqa: E501
+             arg('-j', '--max-jailbreak-count', default=1, type=int,
+                 help='Maximum number of jailbreaks needed to achieve before terminating the attack'),  # noqa: E501
+             arg('--output_file', '-o', help='Output file with results',
+                 default=None)])
 def gptfuzz(args):
     spec = AttackSpecification.create(
         'gptfuzz',
@@ -164,8 +172,9 @@ def pyrit(args):
              arg('eval_model',
                  help='Name of the model that is used to determine if the attack was successful',  # noqa: E501
                  ),
-             arg('--num_prompts', '-n',
-                 help='Number of prompts to test',
+             arg('--num_prompts', '-n', help='Number of prompts to test',
+                 default=None),
+             arg('--output_file', '-o', help='Output file with results',
                  default=None)])
 def codeattack(args):
     spec = AttackSpecification.create(
@@ -183,7 +192,7 @@ def codeattack(args):
              arg('--num_prompts', '-n',
                  help='Number of prompts to test',
                  default=None),
-             arg('--outfile', '-o', help='Output file with results',
+             arg('--output_file', '-o', help='Output file with results',
                  default=None)])
 def artprompt(args):
     spec = AttackSpecification.create(

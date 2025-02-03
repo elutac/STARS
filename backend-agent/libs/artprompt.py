@@ -362,7 +362,7 @@ def single_inference(idx: int, target_model: LLM, instruction: str,
         'cards',
         'puzzle',
         # GPT-generated
-        'gen',
+        # 'gen',
     ]
     # Restrict the mask strategy to vitc horizontal, with a random font
     # chosen among the ones showing the best results in the paper
@@ -415,7 +415,7 @@ def start_artprompt(target_model: LLM,
     Optional parameter num_prompts to limit the test to a number of prompts
     instead of testing all the prompts from the dataset.
     Optional parameter temperature to control the temperature of the LLMs.
-    Optional parameter outfile to set the output file of results.
+    Optional parameter output_file to set the output file of results.
     """
     # Load dataset
     logger.info('Load dataset')
@@ -478,7 +478,7 @@ def start_artprompt(target_model: LLM,
         status.report_success()
 
     # Write results to file
-    outfile = parameters.get('outfile', OUTPUT_FILE)
+    outfile = parameters.get('output_file', OUTPUT_FILE)
     logger.info(f'Write results to output file {outfile}')
     with open(outfile, 'w') as f:
         json.dump(evaluations_res, f, indent=4)
