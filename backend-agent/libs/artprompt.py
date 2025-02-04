@@ -375,7 +375,8 @@ def single_inference(idx: int, target_model: LLM, instruction: str,
     # TODO: progressbar here?
     # Multiprocessing would save a lot of time here, but it may raise issues
     # with AI Core default rate limits
-    for masked_instruction, kw in masked_s_kw:
+    for i, (masked_instruction, kw) in enumerate(masked_s_kw):
+        logger.debug(f'Attempt with masked {i} of {len(masked_s_kw)}')
         # Create cloaked prompt, with ASCII art inside
         attack_prompt = prompt_generator.font(font_name,
                                               masked_instruction,
