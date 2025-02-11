@@ -192,21 +192,20 @@ def start_prompt_map(target_model: LLM, parameters: dict) -> AttackResult:
     system_prompt: The system prompt given to the model that is attacked.
     config: ConfigDict that controls where the output is saved. Leave empty
     for default values.
+    Optional parameter output_file to set the output file of results.
     """
 
     with Step('Preparing attack'):
-        target_system_prompt = parameters['system_prompt'] \
-            if 'system_prompt' in parameters else example_system_prompt
+        target_system_prompt = parameters.get('system_prompt',
+                                              example_system_prompt)
         try:
             job_description = understand_context_from_system_prompt(
                 target_system_prompt, target_model)
         except Exception as e:
             logger.error('Error understanding context from system prompt: ', e)
             return
-        prompt_count = parameters['prompt_count'] \
-            if 'prompt_count' in parameters else 1
-        output_file = parameters['output_file'] \
-            if 'output_file' in parameters else OUTPUT_FILE
+        prompt_count = parameters.get('prompt_count', 1)
+        output_file = parameters.get('output_file', OUTPUT_FILE)
         security_passed = 0
         security_failed = 0
         successful_attacks = []

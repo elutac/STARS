@@ -102,6 +102,7 @@ def start_codeattack(target_model: LLM,
     Optional parameter temperature to control the temperature of the LLMs.
     Optional parameter prompt_type is the type of chosen adversarial prompt.
     Optional parameter query_name is the name of the original dataset.
+    Optional parameter output_file to set the output file of results.
     """
 
     # 1. Generate the prompts based on CodeAttack

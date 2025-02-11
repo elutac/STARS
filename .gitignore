@@ -126,9 +126,6 @@ data.db.*
 # Test keys
 *.pem
 
-# Generated test reports
-*.csv
-
 # BTP keys
 key.txt
 
