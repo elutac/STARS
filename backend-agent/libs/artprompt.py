@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(status.trace_logging)
 
-TEST_DATASET = 'harmful_behaviors_custom_artprompt.csv'
+TEST_DATASET = 'artprompt_harmful_behaviors_custom.csv'
 OUTPUT_FILE = 'artprompt_success.json'
 DESCRIPTION = """
 ArtPrompt is a tool that automatically tests prompt injection attacks on LLMs.

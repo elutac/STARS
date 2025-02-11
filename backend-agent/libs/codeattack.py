@@ -121,7 +121,7 @@ def start_codeattack(target_model: LLM,
                      f'Chosen prompt type: {prompt_type}')
         # Dataset path
         prompts_path = Path(
-            'libs') / 'data' / f'data_{query_name}_{prompt_type}.json'
+            'libs') / 'data' / f'codeattack_{query_name}_{prompt_type}.json'
         num_prompts = parameters.get('num_prompts', None)
         # Load prompt dataset
         with open(prompts_path) as f:
