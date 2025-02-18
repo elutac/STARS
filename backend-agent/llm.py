@@ -84,7 +84,7 @@ class LLM(abc.ABC):
         Useful because the user can specify only the name in the agent.
         """
         # Foundation-models scenarios in AI Core
-        if 'gpt' in model_name:
+        if model_name in AICORE_MODELS['azure-openai']:
             # The agent sometimes autocorrects gpt-35-turbo to gpt-3.5-turbo,
             # so we handle this behavior here.
             if model_name == 'gpt-3.5-turbo':
