@@ -27,6 +27,10 @@ AICORE_MODELS = {
     [
         'ibm--granite-13b-chat'
     ],
+    'aicore-mistralai':
+    [
+        'mistralai--mistral-large-instruct',
+    ],
     'aicore-opensource':
     [
         'mistralai--mixtral-8x7b-instruct-v01',
@@ -90,6 +94,8 @@ class LLM(abc.ABC):
             # IBM models are compatible with OpenAI completion API
             return AICoreOpenAILLM(model_name)
         if model_name in AICORE_MODELS['aicore-opensource']:
+            return AICoreOpenAILLM(model_name, False)
+        if model_name in AICORE_MODELS['aicore-mistralai']:
             return AICoreOpenAILLM(model_name, False)
         if model_name in AICORE_MODELS['aws-bedrock']:
             if 'titan' in model_name:
