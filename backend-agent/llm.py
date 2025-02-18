@@ -23,35 +23,21 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(status.trace_logging)
 
 AICORE_MODELS = {
-    'openai':
+    'aicore-ibm':
     [
-        'gpt-35-turbo',
-        'gpt-35-turbo-0125',
-        'gpt-35-turbo-16k',
-        'gpt-4',
-        'gpt-4-32k',
-        'gpt-4o',
-        'gpt-4o-mini'
+        'ibm--granite-13b-chat'
     ],
-    'opensource':
+    'aicore-mistralai':
+    [
+        'mistralai--mistral-large-instruct',
+    ],
+    'aicore-opensource':
     [
         'mistralai--mixtral-8x7b-instruct-v01',
         'meta--llama3.1-70b-instruct',
         'meta--llama3-70b-instruct'
     ],
-    'vertexai':
-    [
-        'text-bison',
-        'chat-bison',
-        'gemini-1.0-pro',
-        'gemini-1.5-pro',
-        'gemini-1.5-flash'
-    ],
-    'ibm':
-    [
-        'ibm--granite-13b-chat'
-    ],
-    'bedrock':
+    'aws-bedrock':
     [
         'amazon--titan-text-lite',
         'amazon--titan-text-express',
@@ -62,7 +48,25 @@ AICORE_MODELS = {
         'amazon--nova-pro',
         'amazon--nova-lite',
         'amazon--nova-micro'
-    ]
+    ],
+    'azure-openai':
+    [
+        'gpt-35-turbo',
+        'gpt-35-turbo-0125',
+        'gpt-35-turbo-16k',
+        'gpt-4',
+        'gpt-4-32k',
+        'gpt-4o',
+        'gpt-4o-mini'
+    ],
+    'gcp-vertexai':
+    [
+        'text-bison',
+        'chat-bison',
+        'gemini-1.0-pro',
+        'gemini-1.5-pro',
+        'gemini-1.5-flash'
+    ],
 }
 
 
@@ -79,25 +83,30 @@ class LLM(abc.ABC):
         Create a specific LLM object from the name of the model.
         Useful because the user can specify only the name in the agent.
         """
-        if 'gpt' in model_name:
+        # Foundation-models scenarios in AI Core
+        if model_name in AICORE_MODELS['azure-openai']:
             # The agent sometimes autocorrects gpt-35-turbo to gpt-3.5-turbo,
             # so we handle this behavior here.
             if model_name == 'gpt-3.5-turbo':
                 model_name = 'gpt-35-turbo'
             return AICoreOpenAILLM(model_name)
-        if model_name in AICORE_MODELS['opensource']:
-            return AICoreOpenAILLM(model_name, False)
-        if model_name in AICORE_MODELS['ibm']:
+        if model_name in AICORE_MODELS['aicore-ibm']:
             # IBM models are compatible with OpenAI completion API
             return AICoreOpenAILLM(model_name)
-        if model_name in AICORE_MODELS['vertexai']:
-            return AICoreGoogleVertexLLM(model_name)
-        if model_name in AICORE_MODELS['bedrock']:
+        if model_name in AICORE_MODELS['aicore-opensource']:
+            return AICoreOpenAILLM(model_name, False)
+        if model_name in AICORE_MODELS['aicore-mistralai']:
+            return AICoreOpenAILLM(model_name, False)
+        if model_name in AICORE_MODELS['aws-bedrock']:
             if 'titan' in model_name:
                 # Titan models don't support system prompts
                 return AICoreAmazonBedrockLLM(model_name, False)
             else:
                 return AICoreAmazonBedrockLLM(model_name)
+        if model_name in AICORE_MODELS['gcp-vertexai']:
+            return AICoreGoogleVertexLLM(model_name)
+
+        # Custom models
         if model_name == 'mistral':
             return LocalOpenAILLM(
                 os.getenv('MISTRAL_MODEL_NAME', ''),
