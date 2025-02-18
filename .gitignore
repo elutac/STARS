@@ -126,9 +126,6 @@ data.db.*
 # Test keys
 *.pem
 
-# Generated test reports
-*.csv
-
 # BTP keys
 key.txt
 
@@ -140,6 +137,7 @@ summary.txt
 prompt_success.txt
 result_gptfuzz.txt
 codeattack_success.txt
+artprompt_success.json
 
 # Frontend Environments
 frontend/src/environments

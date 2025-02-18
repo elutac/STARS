@@ -23,6 +23,7 @@ Supported attacks are:
 - gptfuzz
 - PyRIT
 - CodeAttack
+- ArtPrompt
 
 ### Attacks against Natural language processing models
 

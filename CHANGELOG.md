@@ -1,3 +1,13 @@
+# Version: v0.2.0
+
+* [#25](https://github.com/SAP/STARS/pull/25): Bump katex from 0.16.10 to 0.16.21 in /frontend
+* [#27](https://github.com/SAP/STARS/pull/27): Add ArtPrompt attack
+* [#28](https://github.com/SAP/STARS/pull/28): Bump undici and @angular-devkit/build-angular in /frontend
+* [#29](https://github.com/SAP/STARS/pull/29): Bump vite and @angular-devkit/build-angular in /frontend
+* [#31](https://github.com/SAP/STARS/pull/31): Implement custom names for output files
+* [#32](https://github.com/SAP/STARS/pull/32): Update datasets file names
+
+
 # Version: v0.1.0
 
 * [#2](https://github.com/SAP/STARS/pull/2): Bump body-parser and express in /frontend
