@@ -8,7 +8,8 @@ import { VulnerabilityInfoService } from '../services/vulnerability-information.
 @Component({
   selector: 'app-chatzone',
   templateUrl: './chatzone.component.html',
-  styleUrls: ['./chatzone.component.css']
+  styleUrls: ['./chatzone.component.css'],
+  standalone: false
 })
 export class ChatzoneComponent implements AfterViewInit, AfterViewChecked {
   chatItems: ChatItem[];
