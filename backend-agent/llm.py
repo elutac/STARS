@@ -118,9 +118,17 @@ class LLM(abc.ABC):
         # possible local ollama instance. If it not even served there, then an
         # exception is raised because such model has either an incorrect name
         # or it has not been deployed.
+        ollama_host = os.getenv('OLLAMA_HOST')
+        ollama_port = os.getenv('OLLAMA_PORT', 11434)
         try:
-            ollama.show(model_name)
-            return OllamaLLM(model_name)
+            if ollama_host:
+                # The model is served in a remote ollama instance
+                remote_ollama_host = f'{ollama_host}:{ollama_port}'
+                return OllamaLLM(model_name, remote_ollama_host)
+            else:
+                # The model is served in a local ollama instance
+                ollama.show(model_name)
+                return OllamaLLM(model_name)
         except (ollama.ResponseError, httpx.ConnectError):
             raise ValueError(f'Model {model_name} not found')
 
@@ -334,8 +342,9 @@ class LocalOpenAILLM(AICoreOpenAILLM):
 
 
 class OllamaLLM(LLM):
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: str, host=None):
         self.model_name = model_name
+        self.client = ollama.Client(host=host)
 
     def __str__(self) -> str:
         return f'{self.model_name}/Ollama LLM'
@@ -352,10 +361,11 @@ class OllamaLLM(LLM):
                 {'role': 'user', 'content': prompt},
             ]
             generations = [
-                ollama.generate(self.model_name,
-                                prompt, system_prompt,
-                                options={'temperature': temperature})
-                ['response']
+                self.client.generate(model=self.model_name,
+                                     prompt=prompt,
+                                     system=system_prompt,
+                                     options={'temperature': temperature}
+                                     )['response']
                 for _ in range(n)]
             return self._trace_llm_call(messages, Success(generations))
         except Exception as e:
@@ -372,13 +382,14 @@ class OllamaLLM(LLM):
             n: int = 1) -> list[str]:
         try:
             generations = [
-                ollama.chat(self.model_name,
-                            messages,
-                            options={'temperature': temperature,
-                                     'top_p': top_p,
-                                     'frequency_penalty': frequency_penalty,
-                                     'presence_penalty': presence_penalty})
-                ['message']['content']
+                self.client.chat(
+                    self.model_name,
+                    messages,
+                    options={'temperature': temperature,
+                             'top_p': top_p,
+                             'frequency_penalty': frequency_penalty,
+                             'presence_penalty': presence_penalty}
+                )['message']['content']
                 for _ in range(n)
             ]
             return self._trace_llm_call(messages, Success(generations))
