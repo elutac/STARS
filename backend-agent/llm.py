@@ -352,9 +352,9 @@ class OllamaLLM(LLM):
     def generate(self,
                  system_prompt: str,
                  prompt: str,
-                 temperature: float,
-                 max_tokens: int,
-                 n: int) -> list[str]:
+                 max_tokens: int = 4096,
+                 temperature: float = 0.3,
+                 n: int = 1,) -> list[str]:
         try:
             messages = [
                 {'role': 'system', 'content': system_prompt},
