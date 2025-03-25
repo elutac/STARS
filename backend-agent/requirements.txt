@@ -17,7 +17,7 @@ tensorflow-hub
 sentence-transformers
 torchfile
 tensorflow-text
-ollama==0.4.2
+ollama==0.4.7
 weasyprint
 pyrit==0.2.1
 textattack>=0.3.10
