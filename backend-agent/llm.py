@@ -144,7 +144,17 @@ class LLM(abc.ABC):
         if os.getenv('MISTRAL_URL'):
             models.append('mistral')
         try:
-            ollama_models = [m['name'] for m in ollama.list()['models']]
+            ollama_models = []
+            ollama_host = os.getenv('OLLAMA_HOST')
+            ollama_port = os.getenv('OLLAMA_PORT', 11434)
+            if ollama_host:
+                # The model is served in a remote ollama instance
+                remote_ollama_host = f'{ollama_host}:{ollama_port}'
+                ollama_models = [m['model'] for m in
+                                 ollama.Client(remote_ollama_host).list()
+                                 ['models']]
+            else:
+                ollama_models = [m['name'] for m in ollama.list()['models']]
             return models + ollama_models
         except httpx.ConnectError:
             return models
