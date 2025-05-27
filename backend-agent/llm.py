@@ -23,35 +23,21 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(status.trace_logging)
 
 AICORE_MODELS = {
-    'openai':
+    'aicore-ibm':
     [
-        'gpt-35-turbo',
-        'gpt-35-turbo-0125',
-        'gpt-35-turbo-16k',
-        'gpt-4',
-        'gpt-4-32k',
-        'gpt-4o',
-        'gpt-4o-mini'
+        'ibm--granite-13b-chat'
     ],
-    'opensource':
+    'aicore-mistralai':
+    [
+        'mistralai--mistral-large-instruct',
+    ],
+    'aicore-opensource':
     [
         'mistralai--mixtral-8x7b-instruct-v01',
         'meta--llama3.1-70b-instruct',
         'meta--llama3-70b-instruct'
     ],
-    'vertexai':
-    [
-        'text-bison',
-        'chat-bison',
-        'gemini-1.0-pro',
-        'gemini-1.5-pro',
-        'gemini-1.5-flash'
-    ],
-    'ibm':
-    [
-        'ibm--granite-13b-chat'
-    ],
-    'bedrock':
+    'aws-bedrock':
     [
         'amazon--titan-text-lite',
         'amazon--titan-text-express',
@@ -62,7 +48,25 @@ AICORE_MODELS = {
         'amazon--nova-pro',
         'amazon--nova-lite',
         'amazon--nova-micro'
-    ]
+    ],
+    'azure-openai':
+    [
+        'gpt-35-turbo',
+        'gpt-35-turbo-0125',
+        'gpt-35-turbo-16k',
+        'gpt-4',
+        'gpt-4-32k',
+        'gpt-4o',
+        'gpt-4o-mini'
+    ],
+    'gcp-vertexai':
+    [
+        'text-bison',
+        'chat-bison',
+        'gemini-1.0-pro',
+        'gemini-1.5-pro',
+        'gemini-1.5-flash'
+    ],
 }
 
 
@@ -79,25 +83,30 @@ class LLM(abc.ABC):
         Create a specific LLM object from the name of the model.
         Useful because the user can specify only the name in the agent.
         """
-        if 'gpt' in model_name:
+        # Foundation-models scenarios in AI Core
+        if model_name in AICORE_MODELS['azure-openai']:
             # The agent sometimes autocorrects gpt-35-turbo to gpt-3.5-turbo,
             # so we handle this behavior here.
             if model_name == 'gpt-3.5-turbo':
                 model_name = 'gpt-35-turbo'
             return AICoreOpenAILLM(model_name)
-        if model_name in AICORE_MODELS['opensource']:
-            return AICoreOpenAILLM(model_name, False)
-        if model_name in AICORE_MODELS['ibm']:
+        if model_name in AICORE_MODELS['aicore-ibm']:
             # IBM models are compatible with OpenAI completion API
             return AICoreOpenAILLM(model_name)
-        if model_name in AICORE_MODELS['vertexai']:
-            return AICoreGoogleVertexLLM(model_name)
-        if model_name in AICORE_MODELS['bedrock']:
+        if model_name in AICORE_MODELS['aicore-opensource']:
+            return AICoreOpenAILLM(model_name, False)
+        if model_name in AICORE_MODELS['aicore-mistralai']:
+            return AICoreOpenAILLM(model_name, False)
+        if model_name in AICORE_MODELS['aws-bedrock']:
             if 'titan' in model_name:
                 # Titan models don't support system prompts
                 return AICoreAmazonBedrockLLM(model_name, False)
             else:
                 return AICoreAmazonBedrockLLM(model_name)
+        if model_name in AICORE_MODELS['gcp-vertexai']:
+            return AICoreGoogleVertexLLM(model_name)
+
+        # Custom models
         if model_name == 'mistral':
             return LocalOpenAILLM(
                 os.getenv('MISTRAL_MODEL_NAME', ''),
@@ -109,9 +118,17 @@ class LLM(abc.ABC):
         # possible local ollama instance. If it not even served there, then an
         # exception is raised because such model has either an incorrect name
         # or it has not been deployed.
+        ollama_host = os.getenv('OLLAMA_HOST')
+        ollama_port = os.getenv('OLLAMA_PORT', 11434)
         try:
-            ollama.show(model_name)
-            return OllamaLLM(model_name)
+            if ollama_host:
+                # The model is served in a remote ollama instance
+                remote_ollama_host = f'{ollama_host}:{ollama_port}'
+                return OllamaLLM(model_name, remote_ollama_host)
+            else:
+                # The model is served in a local ollama instance
+                ollama.show(model_name)
+                return OllamaLLM(model_name)
         except (ollama.ResponseError, httpx.ConnectError):
             raise ValueError(f'Model {model_name} not found')
 
@@ -127,7 +144,17 @@ class LLM(abc.ABC):
         if os.getenv('MISTRAL_URL'):
             models.append('mistral')
         try:
-            ollama_models = [m['name'] for m in ollama.list()['models']]
+            ollama_models = []
+            ollama_host = os.getenv('OLLAMA_HOST')
+            ollama_port = os.getenv('OLLAMA_PORT', 11434)
+            if ollama_host:
+                # The model is served in a remote ollama instance
+                remote_ollama_host = f'{ollama_host}:{ollama_port}'
+                ollama_models = [m['model'] for m in
+                                 ollama.Client(remote_ollama_host).list()
+                                 ['models']]
+            else:
+                ollama_models = [m['name'] for m in ollama.list()['models']]
             return models + ollama_models
         except httpx.ConnectError:
             return models
@@ -325,8 +352,9 @@ class LocalOpenAILLM(AICoreOpenAILLM):
 
 
 class OllamaLLM(LLM):
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: str, host=None):
         self.model_name = model_name
+        self.client = ollama.Client(host=host)
 
     def __str__(self) -> str:
         return f'{self.model_name}/Ollama LLM'
@@ -334,19 +362,20 @@ class OllamaLLM(LLM):
     def generate(self,
                  system_prompt: str,
                  prompt: str,
-                 temperature: float,
-                 max_tokens: int,
-                 n: int) -> list[str]:
+                 max_tokens: int = 4096,
+                 temperature: float = 0.3,
+                 n: int = 1,) -> list[str]:
         try:
             messages = [
                 {'role': 'system', 'content': system_prompt},
                 {'role': 'user', 'content': prompt},
             ]
             generations = [
-                ollama.generate(self.model_name,
-                                prompt, system_prompt,
-                                options={'temperature': temperature})
-                ['response']
+                self.client.generate(model=self.model_name,
+                                     prompt=prompt,
+                                     system=system_prompt,
+                                     options={'temperature': temperature}
+                                     )['response']
                 for _ in range(n)]
             return self._trace_llm_call(messages, Success(generations))
         except Exception as e:
@@ -363,13 +392,14 @@ class OllamaLLM(LLM):
             n: int = 1) -> list[str]:
         try:
             generations = [
-                ollama.chat(self.model_name,
-                            messages,
-                            options={'temperature': temperature,
-                                     'top_p': top_p,
-                                     'frequency_penalty': frequency_penalty,
-                                     'presence_penalty': presence_penalty})
-                ['message']['content']
+                self.client.chat(
+                    self.model_name,
+                    messages,
+                    options={'temperature': temperature,
+                             'top_p': top_p,
+                             'frequency_penalty': frequency_penalty,
+                             'presence_penalty': presence_penalty}
+                )['message']['content']
                 for _ in range(n)
             ]
             return self._trace_llm_call(messages, Success(generations))
