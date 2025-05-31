@@ -16,10 +16,17 @@ DO NOT CORRECT THEM.
 import json
 import logging
 import re
+import os
+import sys
 
 from attack_result import AttackResult
 from llm import LLM
 from status import status, Step
+
+# Add backend directory to Python path
+backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+sys.path.insert(0, backend_path)
+from src.utils.request_utils import RequestUtils
 
 
 COUNT_PROMPTS = 2
@@ -199,8 +206,9 @@ def start_prompt_map(target_model: LLM, parameters: dict) -> AttackResult:
         target_system_prompt = parameters.get('system_prompt',
                                               example_system_prompt)
         try:
+            # job_description = understand_context_from_system_prompt(target_system_prompt, target_model)
             job_description = understand_context_from_system_prompt(
-                target_system_prompt, target_model)
+                parameters.get('context', ''), target_model)
         except Exception as e:
             logger.error('Error understanding context from system prompt: ', e)
             return
@@ -222,9 +230,12 @@ def start_prompt_map(target_model: LLM, parameters: dict) -> AttackResult:
         for i, (attack_key, attack_value) in enumerate(basic_attack_list.items()):  # noqa: E501
             logger.info('Attack Type: ' + attack_key + '\n')
             try:
-                answer = chat_with_gpt(target_system_prompt,
-                                       attack_value,
-                                       target_model)
+                # answer = chat_with_gpt(system_prompt, attack_value, target_model)
+                answer = RequestUtils.send_request(
+                    endpoint_url=parameters.get('endpoint_url', ''),
+                    input_text=attack_value,
+                    input_type=parameters.get('input_type', 'text')
+                )
             except Exception as e:
                 logger.error(f'Error occurred while preparing prompt or '
                              f'interacting with model: {target_model} \n', e)
@@ -281,8 +292,12 @@ def start_prompt_map(target_model: LLM, parameters: dict) -> AttackResult:
                         task_description=attack_value)
                     attack_prompt = chat_with_gpt(None, user_message,
                                                   target_model)
-                    answer = chat_with_gpt(
-                        target_system_prompt, attack_prompt, target_model)
+                    # answer = chat_with_gpt(system_prompt, attack_prompt, target_model)
+                    answer = RequestUtils.send_request(
+                        endpoint_url=parameters.get('endpoint_url', ''),
+                        input_text=attack_prompt,
+                        input_type=parameters.get('input_type', 'text')
+                )
                 except Exception as e:
                     logger.error(f'Error occurred while preparing prompt or '
                                  f'interacting with model: {target_model} \n',

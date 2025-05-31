@@ -1,6 +1,7 @@
 .env
 /cache
 /venv*
+/.venv*
 
 traces
 reports

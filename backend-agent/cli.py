@@ -79,10 +79,16 @@ def start_spec(spec: AttackSpecification, args: Namespace):
 
 
 @subcommand([arg('target_model', help='Name of the target model to attack'),
-             arg('-s', '--system-prompt', type=str,
-                 help='The system prompt given to the model that is attacked.'),  # noqa: E501
+            #  arg('-s', '--system-prompt', type=str,
+            #      help='The system prompt given to the model that is attacked.'),  # noqa: E501
              arg('--output_file', '-o', help='Output file with results',
-                 default=None)])
+                 default=None),
+             arg('--endpoint_url', '-e', help='Endpoint URL of the model to attack',
+                 default=None),
+             arg('--input_type', '-i', help='Input type of the API',
+                 default='text'),
+             arg('--context', '-c', help='Context of the LLM integration',
+                 default='')])
 def promptmap(args):
     spec = AttackSpecification.create(
         'promptmap',
