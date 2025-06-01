@@ -13,7 +13,7 @@ from libs.textattack import test as test_textattack, \
     FILE_FAIL as textattack_out_fail, \
     FILE_SUCCESS as textattack_out_success, \
     FILE_SUMMARY as textattack_out_summary
-from attack import AttackSpecification, AttackSuite
+from attack import AttackSpecification, AttackSuite, SuiteResult
 from status import Trace
 
 # Library-free Subcommand utilities from
@@ -73,8 +73,11 @@ def start_spec(spec: AttackSpecification, args: Namespace):
         print(spec.serialize())
     else:
         result = spec.start()
-        if spec.output_file:
-            print(f'Full result written to {spec.output_file}')
+        if args.output_file:
+            # Create a SuiteResult with a single result
+            suite_result = SuiteResult([result])
+            suite_result.to_file(args.output_file, 'json')
+            print(f'Full result written to {args.output_file}')
         return result
 
 
@@ -85,11 +88,23 @@ def start_spec(spec: AttackSpecification, args: Namespace):
                  default=None),
              arg('--endpoint_url', '-e', help='Endpoint URL of the model to attack',
                  default=None),
-             arg('--input_type', '-i', help='Input type of the API',
+             arg('--content_type', '-i', help='Content-Type of the API',
                  default='text'),
              arg('--context', '-c', help='Context of the LLM integration',
-                 default='')])
+                 default=''),
+             arg('--template', '-t', help='JSON string for request template. Use ${input} to mark where the test input should go',
+                default=None)])
 def promptmap(args):
+    params = vars(args)
+    
+    # Parse template JSON string if provided
+    if params.get('template'):
+        try:
+            params['template'] = json.loads(params['template'])
+        except json.JSONDecodeError as e:
+            print(f"Error parsing template JSON: {e}", file=sys.stderr)
+            return
+            
     spec = AttackSpecification.create(
         'promptmap',
         args.target_model,

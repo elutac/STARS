@@ -234,7 +234,8 @@ def start_prompt_map(target_model: LLM, parameters: dict) -> AttackResult:
                 answer = RequestUtils.send_request(
                     endpoint_url=parameters.get('endpoint_url', ''),
                     input_text=attack_value,
-                    input_type=parameters.get('input_type', 'text')
+                    content_type=parameters.get('content_type', 'text'),
+                    template=parameters.get('template', None)
                 )
             except Exception as e:
                 logger.error(f'Error occurred while preparing prompt or '
@@ -296,7 +297,7 @@ def start_prompt_map(target_model: LLM, parameters: dict) -> AttackResult:
                     answer = RequestUtils.send_request(
                         endpoint_url=parameters.get('endpoint_url', ''),
                         input_text=attack_prompt,
-                        input_type=parameters.get('input_type', 'text')
+                        content_type=parameters.get('content_type', 'text')
                 )
                 except Exception as e:
                     logger.error(f'Error occurred while preparing prompt or '
