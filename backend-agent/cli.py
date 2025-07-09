@@ -96,14 +96,6 @@ def start_spec(spec: AttackSpecification, args: Namespace):
                 default=None)])
 def promptmap(args):
     params = vars(args)
-    
-    # Parse template JSON string if provided
-    if params.get('template'):
-        try:
-            params['template'] = json.loads(params['template'])
-        except json.JSONDecodeError as e:
-            print(f"Error parsing template JSON: {e}", file=sys.stderr)
-            return
             
     spec = AttackSpecification.create(
         'promptmap',
